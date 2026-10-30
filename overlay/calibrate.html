@@ -19,13 +19,23 @@ html, body { margin: 0; height: 100%; background: rgba(5, 10, 14, .35); cursor: 
 </head>
 <body>
 <div class="help" id="help">
-  Затисніть ліву кнопку миші й обведіть рамкою <b>рядки повідомлень</b> вкладки чату (без кнопок вкладок угорі).
-  <div class="keys">Enter — зберегти · Esc — скасувати. Рамку можна перемалювати.</div>
+  <span id="calHelp"></span>
+  <div class="keys" id="calKeys"></div>
 </div>
 <div class="box" id="box" hidden></div>
-<div class="bar" id="bar" hidden><button class="ok" id="ok">Зберегти</button><button id="cancel">Скасувати</button></div>
+<div class="bar" id="bar" hidden><button class="ok" id="ok"></button><button id="cancel"></button></div>
+<script src="i18n.js"></script>
 <script>
 (() => {
+  let lang = 'uk';
+  try { lang = localStorage.getItem('lang') || 'uk'; } catch {}
+  const T = RQ_I18N[lang] || RQ_I18N.uk;
+  document.documentElement.lang = lang;
+  document.title = T.calibrate;
+  document.getElementById('calHelp').innerHTML = T.calHelp;
+  document.getElementById('calKeys').textContent = T.calKeys;
+  document.getElementById('ok').textContent = T.calSave;
+  document.getElementById('cancel').textContent = T.calCancel;
   const box = document.getElementById('box');
   const bar = document.getElementById('bar');
   let rect = null, start = null;

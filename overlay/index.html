@@ -54,8 +54,6 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
 
 .strip { display: flex; margin-left: -1px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .strip > div { flex: 1 1 0; padding: 6px 14px; display: flex; flex-direction: column; gap: 1px; min-width: 0; border-left: 1px solid var(--line); }
-.ov.no-ph .ph, .ov.no-ph .cols span:last-child { display: none; }
-.ov.no-ph .m-grid, .ov.no-ph .l-grid { grid-template-columns: minmax(0, 1fr) 52px; }
 .ov.set-open > :not(.head):not(.settings) { display: none !important; }
 .settings { padding: 6px 14px 14px; }
 .settings h4 { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); font-weight: 600; margin: 10px 0 6px; }
@@ -86,12 +84,11 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
 .list::-webkit-scrollbar { width: 6px; } .list::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
 .row { display: grid; gap: 10px; align-items: center; padding: 5px 8px 7px; border-radius: 5px; position: relative; }
 .row:hover { background: var(--soft); }
-.m-grid { grid-template-columns: minmax(0, 1fr) 52px 62px; }
-.l-grid { grid-template-columns: minmax(0, 1fr) 52px 58px; }
+.m-grid { grid-template-columns: minmax(0, 1fr) 60px; }
+.l-grid { grid-template-columns: minmax(0, 1fr) 60px; }
 .nm { min-width: 0; overflow-wrap: anywhere; line-height: 1.25; }
 .nm.card { color: var(--card); }
 .ct { font-family: var(--f-num); font-weight: 600; text-align: right; }
-.ph { font-family: var(--f-num); font-size: 12px; color: var(--muted); text-align: right; }
 .share { position: absolute; left: 8px; right: 8px; bottom: 2px; height: 2px; background: var(--soft); border-radius: 1px; }
 .share i { display: block; height: 100%; background: var(--accent); opacity: .65; border-radius: 1px; }
 .flash { animation: flash 1.2s ease-out; }
@@ -122,6 +119,7 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
 .e-kill, .e-level { color: var(--exp); } .e-item { color: var(--pick); } .e-gold { color: var(--gold); } .e-recv { color: var(--recv); } .e-heal { color: var(--heal); }
 .hint { padding: 10px 14px; font-size: 12.5px; color: var(--gold); border-bottom: 1px solid var(--line); line-height: 1.4; }
 .hint[hidden] { display: none; }
+.lang { padding: 0 0 2px; }
 .hint button { font: inherit; color: var(--on-accent); background: var(--accent); border: 0; border-radius: 5px; padding: 3px 10px; margin-top: 6px; cursor: pointer; }
 
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
@@ -134,85 +132,95 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
     <div class="brand">RQ Stats</div>
     <div class="sess"><span class="dot" id="dot"></span><span id="timer">00:00:00</span></div>
     <div class="tools">
-      <button class="ib" id="bSet" title="Налаштування"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2.5 4.5h7M12.5 4.5h1M2.5 11.5h1M6.5 11.5h7"/><circle cx="11" cy="4.5" r="1.6"/><circle cx="5" cy="11.5" r="1.6"/></svg></button>
-      <button class="ib" id="bCal" title="Виділити чат (Alt+Shift+R)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 5V2h3M11 2h3v3M14 11v3h-3M5 14H2v-3"/></svg></button>
-      <button class="ib" id="bReset" title="Нова сесія"></button>
-      <button class="ib" id="bCompact" title="Згорнути"></button>
-      <button class="ib" id="bQuit" title="Закрити програму"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+      <button class="ib" id="bSet" data-i18n-title="settings"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2.5 4.5h7M12.5 4.5h1M2.5 11.5h1M6.5 11.5h7"/><circle cx="11" cy="4.5" r="1.6"/><circle cx="5" cy="11.5" r="1.6"/></svg></button>
+      <button class="ib" id="bCal" data-i18n-title="calibrate"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 5V2h3M11 2h3v3M14 11v3h-3M5 14H2v-3"/></svg></button>
+      <button class="ib" id="bReset"></button>
+      <button class="ib" id="bCompact"></button>
+      <button class="ib" id="bQuit" data-i18n-title="quit"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
     </div>
   </header>
 
   <div class="hint" id="hint" hidden></div>
 
   <div class="settings" id="settings" hidden>
-    <h4>Показувати</h4>
+    <h4 data-i18n="language"></h4>
+    <div class="chips lang" id="langs">
+      <button class="chip" data-lang="uk">Українська</button>
+      <button class="chip" data-lang="ru">Русский</button>
+      <button class="chip" data-lang="en">English</button>
+    </div>
+    <h4 data-i18n="show"></h4>
     <div class="opts" id="opts"></div>
-    <h4>Прозорість панелі</h4>
+    <h4 data-i18n="alpha"></h4>
     <label class="alpha" for="alpha"><input type="range" id="alpha" min="40" max="100" step="2"></label>
-    <button class="done" id="bDone">Готово</button>
+    <button class="done" id="bDone" data-i18n="done"></button>
   </div>
 
   <div class="hud" id="hud">
     <div class="tile t-dps" data-k="dps"><span class="lbl">DPS</span><span class="val" id="vDps">0</span>
       <svg class="spark" viewBox="0 0 100 20" preserveAspectRatio="none"><path class="ar" id="spA"></path><path class="ln" id="spL"></path></svg></div>
-    <div class="tile t-gold" data-k="gold"><span class="lbl">Золото</span><span class="val" id="vGold">0</span><span class="sub" id="sGold"></span></div>
-    <div class="tile t-exp" data-k="exp"><span class="lbl">Досвід</span><span class="val" id="vExp">0</span><span class="sub" id="sExp"></span></div>
+    <div class="tile t-gold" data-k="gold"><span class="lbl" data-i18n="gold"></span><span class="val" id="vGold">0</span><span class="sub"></span></div>
+    <div class="tile t-exp" data-k="exp"><span class="lbl" data-i18n="exp"></span><span class="val" id="vExp">0</span><span class="sub"></span></div>
   </div>
   <div class="strip" id="strip">
-    <div data-k="kills"><span>Вбито мобів</span><b id="vKills">0</b></div>
-    <div data-k="items"><span>Предметів</span><b id="vItems">0</b></div>
-    <div data-k="level"><span>Рівень</span><b id="vLvl">—</b></div>
+    <div data-k="kills"><span data-i18n="kills"></span><b id="vKills">0</b></div>
+    <div data-k="items"><span data-i18n="items"></span><b id="vItems">0</b></div>
+    <div data-k="level"><span data-i18n="level"></span><b id="vLvl">—</b></div>
   </div>
 
   <div class="body" id="body">
     <nav class="tabs">
-      <button class="tab" data-tab="mobs">Моби<span class="n" id="nMobs"></span></button>
-      <button class="tab" data-tab="loot">Лут<span class="n" id="nLoot"></span></button>
-      <button class="tab" data-tab="combat">Бій</button>
+      <button class="tab" data-tab="mobs"><span data-i18n="tabMobs"></span><span class="n" id="nMobs"></span></button>
+      <button class="tab" data-tab="loot"><span data-i18n="tabLoot"></span><span class="n" id="nLoot"></span></button>
+      <button class="tab" data-tab="combat"><span data-i18n="tabCombat"></span></button>
     </nav>
     <div class="pane" id="p-mobs">
-      <div class="sum"><span>Усього вбито <b id="mTotal">0</b></span><span id="mKinds"></span></div>
-      <div class="cols m-grid"><span>Моб</span><span>Вбито</span><span>За год</span></div>
+      <div class="sum"><span><span data-i18n="totalKilled"></span> <b id="mTotal">0</b></span><span id="mKinds"></span></div>
+      <div class="cols m-grid"><span data-i18n="colMob"></span><span data-i18n="colKilled"></span></div>
       <ul class="list" id="mobList"></ul>
     </div>
     <div class="pane" id="p-loot" hidden>
       <div class="chips" id="chips"></div>
-      <div class="cols l-grid"><span>Предмет</span><span>К-сть</span><span>За год</span></div>
+      <div class="cols l-grid"><span data-i18n="colItem"></span><span data-i18n="colQty"></span></div>
       <ul class="list" id="lootList"></ul>
     </div>
     <div class="pane" id="p-combat" hidden>
       <div class="stats">
-        <div class="st"><div class="k">Нанесено</div><div class="v c-dmg" id="cDealt">0</div></div>
-        <div class="st"><div class="k">Отримано</div><div class="v c-recv" id="cRecv">0</div></div>
-        <div class="st"><div class="k">Лікування</div><div class="v c-heal" id="cHeal">0</div></div>
-        <div class="st"><div class="k">Макс. удар</div><div class="v" id="cMax">0</div><div class="s" id="cMaxOn"></div></div>
-        <div class="st"><div class="k">Сер. DPS</div><div class="v" id="cAvg">0</div><div class="s">за сесію</div></div>
-        <div class="st"><div class="k">Пік DPS</div><div class="v" id="cPeak">0</div><div class="s" id="cAcc"></div></div>
+        <div class="st"><div class="k" data-i18n="dealt"></div><div class="v c-dmg" id="cDealt">0</div></div>
+        <div class="st"><div class="k" data-i18n="recv"></div><div class="v c-recv" id="cRecv">0</div></div>
+        <div class="st"><div class="k" data-i18n="heal"></div><div class="v c-heal" id="cHeal">0</div></div>
+        <div class="st"><div class="k" data-i18n="maxHit"></div><div class="v" id="cMax">0</div><div class="s" id="cMaxOn"></div></div>
+        <div class="st"><div class="k" data-i18n="avgDps"></div><div class="v" id="cAvg">0</div><div class="s" data-i18n="perSession"></div></div>
+        <div class="st"><div class="k" data-i18n="peakDps"></div><div class="v" id="cPeak">0</div><div class="s" id="cAcc"></div></div>
       </div>
       <div class="chart">
-        <div class="chart-h"><span>Урон за секунду, останні 2 хв</span><span>макс <b id="chMax">0</b></span></div>
+        <div class="chart-h"><span data-i18n="chartTitle"></span><span><span data-i18n="max"></span> <b id="chMax">0</b></span></div>
         <svg viewBox="0 0 300 80" preserveAspectRatio="none" id="chart"></svg>
-        <div class="chart-x"><span>−2 хв</span><span>−1 хв</span><span>зараз</span></div>
+        <div class="chart-x"><span data-i18n="m2"></span><span data-i18n="m1"></span><span data-i18n="now"></span></div>
       </div>
     </div>
   </div>
 
   <div class="feed" data-k="feed">
-    <div class="feed-h"><span id="srcScreen">Екран</span><span id="srcFile">Файл</span></div>
+    <div class="feed-h"><span id="srcScreen"></span><span id="srcFile"></span></div>
     <ol id="feed"></ol>
   </div>
 </section>
 
+<script src="i18n.js"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
-  const nf = new Intl.NumberFormat('uk-UA');
+  const store = { get(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+  const LOCALE = { uk: 'uk-UA', ru: 'ru-RU', en: 'en-US' };
+  let lang = RQ_I18N[store.get('lang', 'uk')] ? store.get('lang', 'uk') : 'uk';
+  let T = RQ_I18N[lang];
+  let nf = new Intl.NumberFormat(LOCALE[lang]);
   const fmt = (n) => nf.format(Math.round(n || 0));
-  const big = (n) => n >= 1e6 ? (n / 1e6).toFixed(2).replace('.', ',') + ' млн' : fmt(n);
+  const big = (n) => n >= 1e6 ? nf.format(Math.round(n / 1e4) / 100) + T.million : fmt(n);
   const pad = (n) => String(n).padStart(2, '0');
   const hms = (t) => { const d = new Date(t); return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); };
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const store = { get(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
   const ICON = {
     reset: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M13 8a5 5 0 1 1-1.6-3.7"/><path d="M13 2.5v3h-3"/></svg>',
     up: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"/></svg>',
@@ -249,10 +257,10 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
   $('bQuit').onclick = () => window.rq.action('quit');
   let armT = null;
   const resetBtn = $('bReset');
-  const disarm = () => { resetBtn.classList.remove('arm'); resetBtn.innerHTML = ICON.reset; resetBtn.title = 'Нова сесія'; };
+  const disarm = () => { resetBtn.classList.remove('arm'); resetBtn.innerHTML = ICON.reset; resetBtn.title = T.reset; };
   resetBtn.onclick = () => {
     if (!resetBtn.classList.contains('arm')) {
-      resetBtn.classList.add('arm'); resetBtn.textContent = 'Скинути?';
+      resetBtn.classList.add('arm'); resetBtn.textContent = T.resetAsk;
       clearTimeout(armT); armT = setTimeout(disarm, 3000);
       return;
     }
@@ -262,24 +270,22 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
   const setCompact = (on) => {
     ov.classList.toggle('compact', on);
     $('bCompact').innerHTML = on ? ICON.down : ICON.up;
-    $('bCompact').title = on ? 'Розгорнути' : 'Згорнути';
+    $('bCompact').title = on ? T.expand : T.compact;
     store.set('compact', on ? '1' : '0');
   };
   $('bCompact').onclick = () => setCompact(!ov.classList.contains('compact'));
   document.querySelectorAll('.tab').forEach((b) => b.onclick = () => setTab(b.dataset.tab));
   $('chips').onclick = (e) => { const b = e.target.closest('.chip'); if (b) { cat = b.dataset.cat; render(); } };
 
-  // ----- settings: show / hide each part of the panel -----
-  const OPTS = [
-    ['dps', 'DPS'], ['gold', 'Золото'], ['exp', 'Досвід'],
-    ['kills', 'Вбито мобів'], ['items', 'Предметів'], ['level', 'Рівень'],
-    ['mobs', 'Вкладка «Моби»'], ['loot', 'Вкладка «Лут»'], ['combat', 'Вкладка «Бій»'],
-    ['ph', 'Колонка «За год»'], ['feed', 'Останні події'],
-  ];
+  // ----- settings: language, show / hide each part, opacity -----
+  const OPTS = [['dps', 'DPS'], ['gold', 'gold'], ['exp', 'exp'], ['kills', 'kills'], ['items', 'items'], ['level', 'level'],
+    ['mobs', 'optMobs'], ['loot', 'optLoot'], ['combat', 'optCombat'], ['feed', 'optFeed']];
   let hiddenSet;
   try { hiddenSet = new Set(JSON.parse(store.get('hidden', '[]'))); } catch { hiddenSet = new Set(); }
-  $('opts').innerHTML = OPTS.map(([k, label]) =>
-    '<label for="opt-' + k + '"><input type="checkbox" id="opt-' + k + '" data-opt="' + k + '"' + (hiddenSet.has(k) ? '' : ' checked') + '>' + label + '</label>').join('');
+  function renderOpts() {
+    $('opts').innerHTML = OPTS.map(([k, label]) =>
+      '<label for="opt-' + k + '"><input type="checkbox" id="opt-' + k + '" data-opt="' + k + '"' + (hiddenSet.has(k) ? '' : ' checked') + '>' + esc(T[label] || label) + '</label>').join('');
+  }
   $('opts').addEventListener('change', (e) => {
     const k = e.target.dataset.opt;
     if (!k) return;
@@ -287,6 +293,7 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
     store.set('hidden', JSON.stringify([...hiddenSet]));
     applyVisibility();
   });
+  $('langs').addEventListener('click', (e) => { const b = e.target.closest('[data-lang]'); if (b) setLang(b.dataset.lang); });
   const alpha = Number(store.get('alpha', '88'));
   $('alpha').value = alpha;
   ov.style.setProperty('--a', alpha / 100);
@@ -295,6 +302,21 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
   $('bSet').onclick = () => openSettings(!ov.classList.contains('set-open'));
   $('bDone').onclick = () => openSettings(false);
 
+  function setLang(l) {
+    if (!RQ_I18N[l]) return;
+    lang = l; T = RQ_I18N[l]; nf = new Intl.NumberFormat(LOCALE[l]);
+    store.set('lang', l);
+    document.documentElement.lang = l;
+    document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = T[el.dataset.i18n] ?? ''; });
+    document.querySelectorAll('[data-i18n-title]').forEach((el) => { el.title = T[el.dataset.i18nTitle] ?? ''; });
+    document.querySelectorAll('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === l)));
+    $('hint').dataset.html = '';
+    renderOpts();
+    disarm();
+    setCompact(ov.classList.contains('compact'));
+    render();
+  }
+
   function applyVisibility() {
     document.querySelectorAll('[data-k]').forEach((el) => { el.hidden = hiddenSet.has(el.dataset.k); });
     document.querySelectorAll('.tab').forEach((b) => { b.hidden = hiddenSet.has(b.dataset.tab); });
@@ -302,7 +324,6 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
     $('strip').hidden = ['kills', 'items', 'level'].every((k) => hiddenSet.has(k));
     const tabs = ['mobs', 'loot', 'combat'].filter((k) => !hiddenSet.has(k));
     $('body').hidden = tabs.length === 0;
-    ov.classList.toggle('no-ph', hiddenSet.has('ph'));
     if (tabs.length && !tabs.includes(tab)) setTab(tabs[0]);
   }
 
@@ -315,7 +336,9 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
   }
 
   function keepScroll(el, html) { const top = el.scrollTop; el.innerHTML = html; el.scrollTop = top; }
-  function plural(n, one, few, many) {
+  function kinds(n) {
+    const [one, few, many] = T.kinds;
+    if (lang === 'en') return n === 1 ? one : many;
     const a = n % 10, b = n % 100;
     if (a === 1 && b !== 11) return one;
     if (a >= 2 && a <= 4 && (b < 12 || b > 14)) return few;
@@ -335,14 +358,14 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
     const dot = $('dot');
     dot.className = 'dot';
     let hint = '';
-    if (st.screen === 'no-region') { dot.classList.add('warn'); hint = 'Покажіть програмі, де чат: виділіть рамкою рядки вкладки «' + esc(st.tab) + '».<br><button id="hintCal">Виділити чат</button>'; }
-    else if (st.screen === 'error') { dot.classList.add('err'); hint = st.error === 'no-ru-ocr' ? 'У Windows не встановлено російське розпізнавання тексту.' : 'Читання екрана перезапускається…'; }
+    if (st.screen === 'no-region') { dot.classList.add('warn'); hint = esc(T.hintRegion.replace('{tab}', st.tab)) + '<br><button id="hintCal">' + esc(T.hintBtn) + '</button>'; }
+    else if (st.screen === 'error') { dot.classList.add('err'); hint = esc(st.error === 'no-ru-ocr' ? T.noOcr : T.restarting); }
     else if (st.reading) dot.classList.add('on');
     const h = $('hint');
     h.hidden = !hint;
     if (hint && h.dataset.html !== hint) { h.innerHTML = hint; h.dataset.html = hint; const b = $('hintCal'); if (b) b.onclick = () => window.rq.action('calibrate'); }
-    $('srcScreen').textContent = st.screen === 'ok' ? (st.reading ? 'Екран: читає' : 'Екран: чат без змін') : st.screen === 'no-region' ? 'Екран: чат не виділено' : 'Екран: …';
-    $('srcFile').textContent = !st.chatlogsFound ? 'Файл: гру не знайдено' : st.exactUntil ? 'Файл: точно до ' + hms(st.exactUntil) : 'Файл: чекаю запису';
+    $('srcScreen').textContent = st.screen === 'ok' ? (st.reading ? T.scrReading : T.scrIdle) : st.screen === 'no-region' ? T.scrNoRegion : T.scrWait;
+    $('srcFile').textContent = !st.chatlogsFound ? T.fileNoGame : st.exactUntil ? T.fileUntil + hms(st.exactUntil) : T.fileWait;
   }
 
   function render() {
@@ -353,9 +376,7 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
     $('vDps').textContent = fmt(s.dps);
     renderSpark(s.chart);
     $('vGold').textContent = fmt(s.gold);
-    $('sGold').textContent = '';
     $('vExp').textContent = big(s.exp);
-    $('sExp').textContent = '';
     $('vKills').textContent = fmt(s.totalKills);
     $('vItems').textContent = fmt(s.totalItems);
     $('vLvl').textContent = s.level ? s.level + (s.levelsGained ? ' (+' + s.levelsGained + ')' : '') : '—';
@@ -366,32 +387,32 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
     if (tab === 'mobs') {
       const top = s.mobs.length ? s.mobs[0].count : 1;
       $('mTotal').textContent = fmt(s.totalKills);
-      $('mKinds').textContent = s.mobs.length + ' ' + plural(s.mobs.length, 'вид', 'види', 'видів');
+      $('mKinds').textContent = s.mobs.length + ' ' + kinds(s.mobs.length);
       keepScroll($('mobList'), s.mobs.length ? s.mobs.map((m) =>
-        '<li class="row m-grid"><span class="nm">' + esc(m.name) + '</span><span class="ct">' + fmt(m.count) + '</span><span class="ph">' + fmt(m.perHour) + '</span>' +
+        '<li class="row m-grid"><span class="nm">' + esc(m.name) + '</span><span class="ct">' + fmt(m.count) + '</span>' +
         '<span class="share"><i style="width:' + (m.count / top * 100).toFixed(1) + '%"></i></span></li>').join('')
-        : '<li class="empty">Ще нікого не вбито. Лічильник почнеться з першого моба.</li>');
+        : '<li class="empty">' + esc(T.noKills) + '</li>');
     }
     if (tab === 'loot') {
       const cards = s.items.filter((i) => i.card);
-      const chips = [['all', 'Усе', s.items.length], ['card', 'Карти', cards.length], ['other', 'Інше', s.items.length - cards.length]];
-      $('chips').innerHTML = chips.map(([k, label, n]) => '<button class="chip" data-cat="' + k + '" aria-pressed="' + (cat === k) + '">' + label + '<span class="n">' + n + '</span></button>').join('');
+      const chips = [['all', T.all, s.items.length], ['card', T.cards, cards.length], ['other', T.other, s.items.length - cards.length]];
+      $('chips').innerHTML = chips.map(([k, label, n]) => '<button class="chip" data-cat="' + k + '" aria-pressed="' + (cat === k) + '">' + esc(label) + '<span class="n">' + n + '</span></button>').join('');
       const rows = s.items.filter((i) => cat === 'all' || (cat === 'card') === i.card);
       keepScroll($('lootList'), rows.length ? rows.map((i) =>
         '<li class="row l-grid' + (s.now - i.last < 1500 ? ' flash' : '') + '"><span class="nm' + (i.card ? ' card' : '') + '"' + (i.rarity && !i.card ? ' style="color:' + i.rarity + '"' : '') + '>' + esc(i.name) + '</span>' +
-        '<span class="ct">×' + fmt(i.qty) + '</span><span class="ph">' + (i.perHour < 10 ? i.perHour.toFixed(1).replace('.', ',') : fmt(i.perHour)) + '</span></li>').join('')
-        : '<li class="empty">Тут з\'являться предмети, які ви підберете.</li>');
+        '<span class="ct">×' + fmt(i.qty) + '</span></li>').join('')
+        : '<li class="empty">' + esc(T.noLoot) + '</li>');
     }
     if (tab === 'combat') {
       $('cDealt').textContent = big(s.dealt);
       $('cRecv').textContent = big(s.recv);
       $('cHeal').textContent = big(s.heal);
       $('cMax').textContent = fmt(s.maxHit.amount);
-      $('cMaxOn').textContent = s.maxHit.target ? 'по: ' + s.maxHit.target : '';
+      $('cMaxOn').textContent = s.maxHit.target ? T.on + s.maxHit.target : '';
       $('cAvg').textContent = fmt(s.avgDps);
       $('cPeak').textContent = fmt(s.peakDps);
       const tries = s.hits + s.misses;
-      $('cAcc').textContent = tries ? 'влучність ' + Math.round(s.hits / tries * 100) + '%' : '';
+      $('cAcc').textContent = tries ? T.accuracy + ' ' + Math.round(s.hits / tries * 100) + '%' : '';
       const mx = Math.max(...s.chart, 1);
       $('chMax').textContent = fmt(mx);
       $('chart').innerHTML = s.chart.map((v, i) => { const bh = (v / mx) * 76; return '<rect x="' + (i * 5 + .7) + '" y="' + (80 - bh).toFixed(2) + '" width="3.6" height="' + bh.toFixed(2) + '"></rect>'; }).join('');
@@ -400,8 +421,8 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
   }
 
   window.rq.onSnapshot((s) => { S = s; render(); });
-  disarm();
   setCompact(store.get('compact', '0') === '1');
+  setLang(lang);
   setTab(tab);
   applyVisibility();
 })();
