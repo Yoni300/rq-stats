@@ -1,0 +1,14 @@
+{
+  "name": "rq-stats",
+  "version": "0.1.0",
+  "description": "Royal Quest stats overlay: DPS, gold and exp per hour, kills and loot",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "stats": "node src/cli.js"
+  },
+  "devDependencies": {
+    "electron": "^45.2.0"
+  }
+}

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
+<title>Виділіть чат</title>
+<style>
+html, body { margin: 0; height: 100%; background: rgba(5, 10, 14, .35); cursor: crosshair; font-family: "Segoe UI", system-ui, sans-serif; color: #e4ebee; user-select: none; overflow: hidden; }
+.help { position: fixed; top: 40px; left: 50%; transform: translateX(-50%); background: rgb(12 18 23 / .95); border: 1px solid rgba(180, 205, 215, .2); border-radius: 10px; padding: 14px 18px; max-width: 560px; font-size: 14px; line-height: 1.5; cursor: default; }
+.help b { color: #8fc9d6; }
+.help .keys { color: #8d9fa8; font-size: 13px; margin-top: 6px; }
+.box { position: fixed; border: 2px solid #8fc9d6; background: rgba(143, 201, 214, .08); box-shadow: 0 0 0 9999px rgba(0, 0, 0, .25); }
+.box[hidden] { display: none; }
+.bar { position: fixed; display: flex; gap: 8px; cursor: default; }
+.bar[hidden] { display: none; }
+.bar button { font: inherit; font-size: 13px; padding: 5px 14px; border-radius: 6px; border: 1px solid rgba(180, 205, 215, .25); background: rgb(12 18 23 / .95); color: #e4ebee; cursor: pointer; }
+.bar button.ok { background: #8fc9d6; color: #0b1418; border-color: #8fc9d6; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="help" id="help">
+  Затисніть ліву кнопку миші й обведіть рамкою <b>рядки повідомлень</b> вкладки чату (без кнопок вкладок угорі).
+  <div class="keys">Enter — зберегти · Esc — скасувати. Рамку можна перемалювати.</div>
+</div>
+<div class="box" id="box" hidden></div>
+<div class="bar" id="bar" hidden><button class="ok" id="ok">Зберегти</button><button id="cancel">Скасувати</button></div>
+<script>
+(() => {
+  const box = document.getElementById('box');
+  const bar = document.getElementById('bar');
+  let rect = null, start = null;
+
+  function show() {
+    if (!rect) { box.hidden = true; bar.hidden = true; return; }
+    Object.assign(box.style, { left: rect.x + 'px', top: rect.y + 'px', width: rect.w + 'px', height: rect.h + 'px' });
+    box.hidden = false;
+    bar.hidden = rect.w < 20 || rect.h < 20;
+    const below = rect.y + rect.h + 44 < window.innerHeight;
+    Object.assign(bar.style, { left: rect.x + 'px', top: (below ? rect.y + rect.h + 8 : Math.max(8, rect.y - 40)) + 'px' });
+  }
+  const save = () => { if (rect && rect.w >= 20 && rect.h >= 20) window.rq.calibDone({ x: Math.round(rect.x), y: Math.round(rect.y), w: Math.round(rect.w), h: Math.round(rect.h) }); };
+
+  document.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || e.target.closest('.bar, .help')) return;
+    start = { x: e.clientX, y: e.clientY };
+    rect = { x: start.x, y: start.y, w: 0, h: 0 };
+    document.body.setPointerCapture(e.pointerId);
+    show();
+  });
+  document.addEventListener('pointermove', (e) => {
+    if (!start) return;
+    rect = { x: Math.min(start.x, e.clientX), y: Math.min(start.y, e.clientY), w: Math.abs(e.clientX - start.x), h: Math.abs(e.clientY - start.y) };
+    show();
+  });
+  document.addEventListener('pointerup', () => { start = null; show(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') window.rq.calibCancel();
+    if (e.key === 'Enter') save();
+  });
+  document.getElementById('ok').onclick = save;
+  document.getElementById('cancel').onclick = () => window.rq.calibCancel();
+  window.rq.onCalibInit((d) => { if (d && d.current) { rect = d.current; show(); } });
+})();
+</script>
+</body>
+</html>

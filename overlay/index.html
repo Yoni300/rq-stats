@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
+<title>RQ Stats</title>
+<style>
+:root {
+  --panel-rgb: 12 18 23;
+  --line: rgba(180, 205, 215, .13);
+  --soft: rgba(200, 225, 235, .06);
+  --fg: #e4ebee;
+  --muted: #8d9fa8;
+  --dim: #5f727b;
+  --accent: #8fc9d6;
+  --on-accent: #0b1418;
+  --dmg: #ffd20f;
+  --recv: #ff5a4f;
+  --heal: #3fdc76;
+  --exp: #5fa9ec;
+  --pick: #aeb9be;
+  --gold: #f09a3e;
+  --card: #c592ff;
+  --f-display: "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  --f-body: "Segoe UI", system-ui, sans-serif;
+  --f-num: "Cascadia Mono", Consolas, "Courier New", monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: transparent; color: var(--fg); font-family: var(--f-body); font-size: 13.5px; overflow: hidden; user-select: none; }
+.ov { --a: .88; margin: 6px; background: rgb(var(--panel-rgb) / var(--a)); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.head { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 14px; border-bottom: 1px solid var(--line); cursor: move; }
+.brand { font-family: var(--f-display); font-weight: 700; font-size: 16px; letter-spacing: .02em; }
+.sess { display: flex; align-items: center; gap: 7px; margin-left: auto; font-family: var(--f-num); font-size: 12px; color: var(--muted); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); }
+.dot.on { background: var(--heal); animation: pulse 1.6s ease-in-out infinite; }
+.dot.warn { background: var(--gold); }
+.dot.err { background: var(--recv); }
+.tools { display: flex; gap: 2px; }
+.ib { height: 26px; min-width: 26px; display: inline-grid; place-items: center; padding: 0; background: transparent; border: 1px solid transparent; border-radius: 6px; color: var(--muted); cursor: pointer; font: inherit; font-size: 12px; }
+.ib:hover { background: var(--soft); color: var(--fg); border-color: var(--line); }
+.ib svg { width: 15px; height: 15px; display: block; }
+.ib.arm { padding: 0 8px; color: var(--recv); border-color: var(--recv); }
+
+[hidden] { display: none !important; }
+.hud { display: flex; margin-left: -1px; }
+.tile { flex: 1 1 0; padding: 10px 12px 9px; display: flex; flex-direction: column; gap: 3px; min-width: 0; border-left: 1px solid var(--line); }
+.lbl { font-size: 10.5px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); white-space: nowrap; }
+.val { font-family: var(--f-num); font-weight: 600; font-size: 20px; line-height: 1.15; white-space: nowrap; }
+.t-dps .val { color: var(--dmg); } .t-gold .val { color: var(--gold); } .t-exp .val { color: var(--exp); }
+.sub { font-size: 11.5px; color: var(--muted); white-space: nowrap; height: 18px; line-height: 18px; }
+.spark { width: 100%; height: 18px; display: block; }
+.spark .ln { fill: none; stroke: var(--dmg); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+.spark .ar { fill: var(--dmg); opacity: .14; }
+
+.strip { display: flex; margin-left: -1px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.strip > div { flex: 1 1 0; padding: 6px 14px; display: flex; flex-direction: column; gap: 1px; min-width: 0; border-left: 1px solid var(--line); }
+.ov.no-ph .ph, .ov.no-ph .cols span:last-child { display: none; }
+.ov.no-ph .m-grid, .ov.no-ph .l-grid { grid-template-columns: minmax(0, 1fr) 52px; }
+.ov.set-open > :not(.head):not(.settings) { display: none !important; }
+.settings { padding: 6px 14px 14px; }
+.settings h4 { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); font-weight: 600; margin: 10px 0 6px; }
+.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+.opts label, .alpha { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; }
+.opts input, .alpha input { accent-color: var(--accent); margin: 0; }
+.alpha input { flex: 1; }
+.done { margin-top: 14px; font: inherit; font-weight: 600; color: var(--on-accent); background: var(--accent); border: 0; border-radius: 6px; padding: 6px 14px; cursor: pointer; }
+.ib.on { color: var(--accent); }
+.strip span { font-size: 10.5px; color: var(--muted); letter-spacing: .04em; white-space: nowrap; }
+.strip b { font-family: var(--f-num); font-size: 15px; font-weight: 600; }
+
+.ov.compact .body, .ov.compact .feed { display: none; }
+.ov.compact .strip { border-bottom: 0; }
+
+.tabs { display: flex; gap: 2px; padding: 4px 10px 0; border-bottom: 1px solid var(--line); }
+.tab { flex: 1; background: transparent; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--muted); font: inherit; font-weight: 600; padding: 7px 4px 8px; cursor: pointer; }
+.tab:hover { color: var(--fg); }
+.tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); }
+.tab .n { font-family: var(--f-num); font-size: 11px; color: var(--dim); margin-left: 5px; font-weight: 400; }
+.pane { padding: 10px 10px 12px; }
+.pane[hidden] { display: none; }
+.sum { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--muted); padding: 0 4px 8px; }
+.sum b { color: var(--fg); font-family: var(--f-num); }
+.cols { display: grid; gap: 10px; padding: 0 8px 4px; font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--dim); }
+.cols span:not(:first-child) { text-align: right; }
+.list { list-style: none; margin: 0; padding: 0; max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 1px; }
+.list::-webkit-scrollbar { width: 6px; } .list::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+.row { display: grid; gap: 10px; align-items: center; padding: 5px 8px 7px; border-radius: 5px; position: relative; }
+.row:hover { background: var(--soft); }
+.m-grid { grid-template-columns: minmax(0, 1fr) 52px 62px; }
+.l-grid { grid-template-columns: minmax(0, 1fr) 52px 58px; }
+.nm { min-width: 0; overflow-wrap: anywhere; line-height: 1.25; }
+.nm.card { color: var(--card); }
+.ct { font-family: var(--f-num); font-weight: 600; text-align: right; }
+.ph { font-family: var(--f-num); font-size: 12px; color: var(--muted); text-align: right; }
+.share { position: absolute; left: 8px; right: 8px; bottom: 2px; height: 2px; background: var(--soft); border-radius: 1px; }
+.share i { display: block; height: 100%; background: var(--accent); opacity: .65; border-radius: 1px; }
+.flash { animation: flash 1.2s ease-out; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 4px 10px; }
+.chip { font: inherit; font-size: 12px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+.chip:hover { color: var(--fg); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.chip .n { font-family: var(--f-num); font-size: 11px; opacity: .75; margin-left: 3px; }
+.empty { padding: 14px 8px; color: var(--dim); font-size: 12.5px; line-height: 1.4; }
+
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 2px 4px 14px; }
+.st .k { font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.st .v { font-family: var(--f-num); font-size: 15px; font-weight: 600; white-space: nowrap; }
+.st .s { font-size: 11px; color: var(--dim); overflow-wrap: anywhere; }
+.c-dmg { color: var(--dmg); } .c-recv { color: var(--recv); } .c-heal { color: var(--heal); }
+.chart { padding: 0 4px; }
+.chart-h { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.chart-h b { font-family: var(--f-num); color: var(--dmg); }
+.chart svg { width: 100%; height: 80px; display: block; background-image: linear-gradient(var(--line) 1px, transparent 1px); background-size: 100% 25%; border-bottom: 1px solid var(--line); }
+.chart svg rect { fill: var(--dmg); opacity: .8; }
+.chart-x { display: flex; justify-content: space-between; font-family: var(--f-num); font-size: 11px; color: var(--dim); margin-top: 4px; }
+
+.feed { border-top: 1px solid var(--line); padding: 8px 14px 10px; background: rgba(0, 0, 0, .18); }
+.feed-h { display: flex; justify-content: space-between; gap: 8px; font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--dim); margin: 0 0 5px; }
+.feed ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; min-height: 84px; justify-content: flex-end; font-size: 12.5px; }
+.feed li { overflow-wrap: anywhere; line-height: 1.3; }
+.feed .t { font-family: var(--f-num); font-size: 11px; color: var(--dim); margin-right: 6px; }
+.e-kill, .e-level { color: var(--exp); } .e-item { color: var(--pick); } .e-gold { color: var(--gold); } .e-recv { color: var(--recv); } .e-heal { color: var(--heal); }
+.hint { padding: 10px 14px; font-size: 12.5px; color: var(--gold); border-bottom: 1px solid var(--line); line-height: 1.4; }
+.hint[hidden] { display: none; }
+.hint button { font: inherit; color: var(--on-accent); background: var(--accent); border: 0; border-radius: 5px; padding: 3px 10px; margin-top: 6px; cursor: pointer; }
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+@keyframes flash { from { background: rgba(240, 154, 62, .22); } to { background: transparent; } }
+</style>
+</head>
+<body>
+<section class="ov" id="ov">
+  <header class="head" id="head">
+    <div class="brand">RQ Stats</div>
+    <div class="sess"><span class="dot" id="dot"></span><span id="timer">00:00:00</span></div>
+    <div class="tools">
+      <button class="ib" id="bSet" title="Налаштування"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2.5 4.5h7M12.5 4.5h1M2.5 11.5h1M6.5 11.5h7"/><circle cx="11" cy="4.5" r="1.6"/><circle cx="5" cy="11.5" r="1.6"/></svg></button>
+      <button class="ib" id="bCal" title="Виділити чат (Alt+Shift+R)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 5V2h3M11 2h3v3M14 11v3h-3M5 14H2v-3"/></svg></button>
+      <button class="ib" id="bReset" title="Нова сесія"></button>
+      <button class="ib" id="bCompact" title="Згорнути"></button>
+      <button class="ib" id="bQuit" title="Закрити програму"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+    </div>
+  </header>
+
+  <div class="hint" id="hint" hidden></div>
+
+  <div class="settings" id="settings" hidden>
+    <h4>Показувати</h4>
+    <div class="opts" id="opts"></div>
+    <h4>Прозорість панелі</h4>
+    <label class="alpha" for="alpha"><input type="range" id="alpha" min="40" max="100" step="2"></label>
+    <button class="done" id="bDone">Готово</button>
+  </div>
+
+  <div class="hud" id="hud">
+    <div class="tile t-dps" data-k="dps"><span class="lbl">DPS</span><span class="val" id="vDps">0</span>
+      <svg class="spark" viewBox="0 0 100 20" preserveAspectRatio="none"><path class="ar" id="spA"></path><path class="ln" id="spL"></path></svg></div>
+    <div class="tile t-gold" data-k="gold"><span class="lbl">Золото</span><span class="val" id="vGold">0</span><span class="sub" id="sGold"></span></div>
+    <div class="tile t-exp" data-k="exp"><span class="lbl">Досвід</span><span class="val" id="vExp">0</span><span class="sub" id="sExp"></span></div>
+  </div>
+  <div class="strip" id="strip">
+    <div data-k="kills"><span>Вбито мобів</span><b id="vKills">0</b></div>
+    <div data-k="items"><span>Предметів</span><b id="vItems">0</b></div>
+    <div data-k="level"><span>Рівень</span><b id="vLvl">—</b></div>
+  </div>
+
+  <div class="body" id="body">
+    <nav class="tabs">
+      <button class="tab" data-tab="mobs">Моби<span class="n" id="nMobs"></span></button>
+      <button class="tab" data-tab="loot">Лут<span class="n" id="nLoot"></span></button>
+      <button class="tab" data-tab="combat">Бій</button>
+    </nav>
+    <div class="pane" id="p-mobs">
+      <div class="sum"><span>Усього вбито <b id="mTotal">0</b></span><span id="mKinds"></span></div>
+      <div class="cols m-grid"><span>Моб</span><span>Вбито</span><span>За год</span></div>
+      <ul class="list" id="mobList"></ul>
+    </div>
+    <div class="pane" id="p-loot" hidden>
+      <div class="chips" id="chips"></div>
+      <div class="cols l-grid"><span>Предмет</span><span>К-сть</span><span>За год</span></div>
+      <ul class="list" id="lootList"></ul>
+    </div>
+    <div class="pane" id="p-combat" hidden>
+      <div class="stats">
+        <div class="st"><div class="k">Нанесено</div><div class="v c-dmg" id="cDealt">0</div></div>
+        <div class="st"><div class="k">Отримано</div><div class="v c-recv" id="cRecv">0</div></div>
+        <div class="st"><div class="k">Лікування</div><div class="v c-heal" id="cHeal">0</div></div>
+        <div class="st"><div class="k">Макс. удар</div><div class="v" id="cMax">0</div><div class="s" id="cMaxOn"></div></div>
+        <div class="st"><div class="k">Сер. DPS</div><div class="v" id="cAvg">0</div><div class="s">за сесію</div></div>
+        <div class="st"><div class="k">Пік DPS</div><div class="v" id="cPeak">0</div><div class="s" id="cAcc"></div></div>
+      </div>
+      <div class="chart">
+        <div class="chart-h"><span>Урон за секунду, останні 2 хв</span><span>макс <b id="chMax">0</b></span></div>
+        <svg viewBox="0 0 300 80" preserveAspectRatio="none" id="chart"></svg>
+        <div class="chart-x"><span>−2 хв</span><span>−1 хв</span><span>зараз</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="feed" data-k="feed">
+    <div class="feed-h"><span id="srcScreen">Екран</span><span id="srcFile">Файл</span></div>
+    <ol id="feed"></ol>
+  </div>
+</section>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const nf = new Intl.NumberFormat('uk-UA');
+  const fmt = (n) => nf.format(Math.round(n || 0));
+  const big = (n) => n >= 1e6 ? (n / 1e6).toFixed(2).replace('.', ',') + ' млн' : fmt(n);
+  const pad = (n) => String(n).padStart(2, '0');
+  const hms = (t) => { const d = new Date(t); return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); };
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const store = { get(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+  const ICON = {
+    reset: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M13 8a5 5 0 1 1-1.6-3.7"/><path d="M13 2.5v3h-3"/></svg>',
+    up: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"/></svg>',
+    down: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>',
+  };
+
+  let S = null;
+  let tab = store.get('tab', 'mobs');
+  let cat = 'all';
+  const ov = $('ov');
+
+  // ----- click-through except over the panel; drag by the header -----
+  let dragging = false;
+  ov.addEventListener('mouseenter', () => window.rq.interactive(true));
+  ov.addEventListener('mouseleave', () => { if (!dragging) window.rq.interactive(false); });
+  $('head').addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button')) return;
+    dragging = true;
+    const sx = e.screenX, sy = e.screenY;
+    $('head').setPointerCapture(e.pointerId);
+    window.rq.dragStart();
+    const move = (ev) => window.rq.drag(ev.screenX - sx, ev.screenY - sy);
+    const up = () => {
+      dragging = false;
+      $('head').removeEventListener('pointermove', move);
+      window.rq.dragEnd();
+    };
+    $('head').addEventListener('pointermove', move);
+    $('head').addEventListener('pointerup', up, { once: true });
+  });
+
+  // ----- buttons -----
+  $('bCal').onclick = () => window.rq.action('calibrate');
+  $('bQuit').onclick = () => window.rq.action('quit');
+  let armT = null;
+  const resetBtn = $('bReset');
+  const disarm = () => { resetBtn.classList.remove('arm'); resetBtn.innerHTML = ICON.reset; resetBtn.title = 'Нова сесія'; };
+  resetBtn.onclick = () => {
+    if (!resetBtn.classList.contains('arm')) {
+      resetBtn.classList.add('arm'); resetBtn.textContent = 'Скинути?';
+      clearTimeout(armT); armT = setTimeout(disarm, 3000);
+      return;
+    }
+    clearTimeout(armT); disarm();
+    window.rq.action('reset');
+  };
+  const setCompact = (on) => {
+    ov.classList.toggle('compact', on);
+    $('bCompact').innerHTML = on ? ICON.down : ICON.up;
+    $('bCompact').title = on ? 'Розгорнути' : 'Згорнути';
+    store.set('compact', on ? '1' : '0');
+  };
+  $('bCompact').onclick = () => setCompact(!ov.classList.contains('compact'));
+  document.querySelectorAll('.tab').forEach((b) => b.onclick = () => setTab(b.dataset.tab));
+  $('chips').onclick = (e) => { const b = e.target.closest('.chip'); if (b) { cat = b.dataset.cat; render(); } };
+
+  // ----- settings: show / hide each part of the panel -----
+  const OPTS = [
+    ['dps', 'DPS'], ['gold', 'Золото'], ['exp', 'Досвід'],
+    ['kills', 'Вбито мобів'], ['items', 'Предметів'], ['level', 'Рівень'],
+    ['mobs', 'Вкладка «Моби»'], ['loot', 'Вкладка «Лут»'], ['combat', 'Вкладка «Бій»'],
+    ['ph', 'Колонка «За год»'], ['feed', 'Останні події'],
+  ];
+  let hiddenSet;
+  try { hiddenSet = new Set(JSON.parse(store.get('hidden', '[]'))); } catch { hiddenSet = new Set(); }
+  $('opts').innerHTML = OPTS.map(([k, label]) =>
+    '<label for="opt-' + k + '"><input type="checkbox" id="opt-' + k + '" data-opt="' + k + '"' + (hiddenSet.has(k) ? '' : ' checked') + '>' + label + '</label>').join('');
+  $('opts').addEventListener('change', (e) => {
+    const k = e.target.dataset.opt;
+    if (!k) return;
+    if (e.target.checked) hiddenSet.delete(k); else hiddenSet.add(k);
+    store.set('hidden', JSON.stringify([...hiddenSet]));
+    applyVisibility();
+  });
+  const alpha = Number(store.get('alpha', '88'));
+  $('alpha').value = alpha;
+  ov.style.setProperty('--a', alpha / 100);
+  $('alpha').addEventListener('input', (e) => { ov.style.setProperty('--a', e.target.value / 100); store.set('alpha', e.target.value); });
+  const openSettings = (on) => { ov.classList.toggle('set-open', on); $('settings').hidden = !on; $('bSet').classList.toggle('on', on); };
+  $('bSet').onclick = () => openSettings(!ov.classList.contains('set-open'));
+  $('bDone').onclick = () => openSettings(false);
+
+  function applyVisibility() {
+    document.querySelectorAll('[data-k]').forEach((el) => { el.hidden = hiddenSet.has(el.dataset.k); });
+    document.querySelectorAll('.tab').forEach((b) => { b.hidden = hiddenSet.has(b.dataset.tab); });
+    $('hud').hidden = ['dps', 'gold', 'exp'].every((k) => hiddenSet.has(k));
+    $('strip').hidden = ['kills', 'items', 'level'].every((k) => hiddenSet.has(k));
+    const tabs = ['mobs', 'loot', 'combat'].filter((k) => !hiddenSet.has(k));
+    $('body').hidden = tabs.length === 0;
+    ov.classList.toggle('no-ph', hiddenSet.has('ph'));
+    if (tabs.length && !tabs.includes(tab)) setTab(tabs[0]);
+  }
+
+  function setTab(t) {
+    tab = ['mobs', 'loot', 'combat'].includes(t) ? t : 'mobs';
+    store.set('tab', tab);
+    document.querySelectorAll('.tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+    for (const k of ['mobs', 'loot', 'combat']) $('p-' + k).hidden = k !== tab;
+    render();
+  }
+
+  function keepScroll(el, html) { const top = el.scrollTop; el.innerHTML = html; el.scrollTop = top; }
+  function plural(n, one, few, many) {
+    const a = n % 10, b = n % 100;
+    if (a === 1 && b !== 11) return one;
+    if (a >= 2 && a <= 4 && (b < 12 || b > 14)) return few;
+    return many;
+  }
+
+  function renderSpark(chart) {
+    const s = chart.slice(-30);
+    const mx = Math.max(...s, 1);
+    const pts = s.map((v, i) => [(i / (s.length - 1)) * 100, 19 - (v / mx) * 17]);
+    const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(2) + ' ' + p[1].toFixed(2)).join(' ');
+    $('spL').setAttribute('d', d);
+    $('spA').setAttribute('d', d + ' L100 20 L0 20 Z');
+  }
+
+  function renderStatus(st) {
+    const dot = $('dot');
+    dot.className = 'dot';
+    let hint = '';
+    if (st.screen === 'no-region') { dot.classList.add('warn'); hint = 'Покажіть програмі, де чат: виділіть рамкою рядки вкладки «' + esc(st.tab) + '».<br><button id="hintCal">Виділити чат</button>'; }
+    else if (st.screen === 'error') { dot.classList.add('err'); hint = st.error === 'no-ru-ocr' ? 'У Windows не встановлено російське розпізнавання тексту.' : 'Читання екрана перезапускається…'; }
+    else if (st.reading) dot.classList.add('on');
+    const h = $('hint');
+    h.hidden = !hint;
+    if (hint && h.dataset.html !== hint) { h.innerHTML = hint; h.dataset.html = hint; const b = $('hintCal'); if (b) b.onclick = () => window.rq.action('calibrate'); }
+    $('srcScreen').textContent = st.screen === 'ok' ? (st.reading ? 'Екран: читає' : 'Екран: чат без змін') : st.screen === 'no-region' ? 'Екран: чат не виділено' : 'Екран: …';
+    $('srcFile').textContent = !st.chatlogsFound ? 'Файл: гру не знайдено' : st.exactUntil ? 'Файл: точно до ' + hms(st.exactUntil) : 'Файл: чекаю запису';
+  }
+
+  function render() {
+    if (!S) return;
+    const s = S;
+    const sec = Math.floor(s.durationMs / 1000);
+    $('timer').textContent = pad(Math.floor(sec / 3600)) + ':' + pad(Math.floor(sec / 60) % 60) + ':' + pad(sec % 60);
+    $('vDps').textContent = fmt(s.dps);
+    renderSpark(s.chart);
+    $('vGold').textContent = fmt(s.gold);
+    $('sGold').textContent = '';
+    $('vExp').textContent = big(s.exp);
+    $('sExp').textContent = '';
+    $('vKills').textContent = fmt(s.totalKills);
+    $('vItems').textContent = fmt(s.totalItems);
+    $('vLvl').textContent = s.level ? s.level + (s.levelsGained ? ' (+' + s.levelsGained + ')' : '') : '—';
+    $('nMobs').textContent = s.mobs.length || '';
+    $('nLoot').textContent = s.items.length || '';
+    renderStatus(s.status);
+
+    if (tab === 'mobs') {
+      const top = s.mobs.length ? s.mobs[0].count : 1;
+      $('mTotal').textContent = fmt(s.totalKills);
+      $('mKinds').textContent = s.mobs.length + ' ' + plural(s.mobs.length, 'вид', 'види', 'видів');
+      keepScroll($('mobList'), s.mobs.length ? s.mobs.map((m) =>
+        '<li class="row m-grid"><span class="nm">' + esc(m.name) + '</span><span class="ct">' + fmt(m.count) + '</span><span class="ph">' + fmt(m.perHour) + '</span>' +
+        '<span class="share"><i style="width:' + (m.count / top * 100).toFixed(1) + '%"></i></span></li>').join('')
+        : '<li class="empty">Ще нікого не вбито. Лічильник почнеться з першого моба.</li>');
+    }
+    if (tab === 'loot') {
+      const cards = s.items.filter((i) => i.card);
+      const chips = [['all', 'Усе', s.items.length], ['card', 'Карти', cards.length], ['other', 'Інше', s.items.length - cards.length]];
+      $('chips').innerHTML = chips.map(([k, label, n]) => '<button class="chip" data-cat="' + k + '" aria-pressed="' + (cat === k) + '">' + label + '<span class="n">' + n + '</span></button>').join('');
+      const rows = s.items.filter((i) => cat === 'all' || (cat === 'card') === i.card);
+      keepScroll($('lootList'), rows.length ? rows.map((i) =>
+        '<li class="row l-grid' + (s.now - i.last < 1500 ? ' flash' : '') + '"><span class="nm' + (i.card ? ' card' : '') + '"' + (i.rarity && !i.card ? ' style="color:' + i.rarity + '"' : '') + '>' + esc(i.name) + '</span>' +
+        '<span class="ct">×' + fmt(i.qty) + '</span><span class="ph">' + (i.perHour < 10 ? i.perHour.toFixed(1).replace('.', ',') : fmt(i.perHour)) + '</span></li>').join('')
+        : '<li class="empty">Тут з\'являться предмети, які ви підберете.</li>');
+    }
+    if (tab === 'combat') {
+      $('cDealt').textContent = big(s.dealt);
+      $('cRecv').textContent = big(s.recv);
+      $('cHeal').textContent = big(s.heal);
+      $('cMax').textContent = fmt(s.maxHit.amount);
+      $('cMaxOn').textContent = s.maxHit.target ? 'по: ' + s.maxHit.target : '';
+      $('cAvg').textContent = fmt(s.avgDps);
+      $('cPeak').textContent = fmt(s.peakDps);
+      const tries = s.hits + s.misses;
+      $('cAcc').textContent = tries ? 'влучність ' + Math.round(s.hits / tries * 100) + '%' : '';
+      const mx = Math.max(...s.chart, 1);
+      $('chMax').textContent = fmt(mx);
+      $('chart').innerHTML = s.chart.map((v, i) => { const bh = (v / mx) * 76; return '<rect x="' + (i * 5 + .7) + '" y="' + (80 - bh).toFixed(2) + '" width="3.6" height="' + bh.toFixed(2) + '"></rect>'; }).join('');
+    }
+    $('feed').innerHTML = s.feed.map((f) => '<li class="e-' + f.type + '"><span class="t">' + hms(f.time) + '</span>' + esc(f.text) + '</li>').join('');
+  }
+
+  window.rq.onSnapshot((s) => { S = s; render(); });
+  disarm();
+  setCompact(store.get('compact', '0') === '1');
+  setTab(tab);
+  applyVisibility();
+})();
+</script>
+</body>
+</html>
