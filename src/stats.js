@@ -4,8 +4,9 @@ const DPS_WINDOW_MS = 10_000;
 const CHART_BUCKETS = 60;  // 60 bars x 2 s = last 2 minutes
 const CHART_STEP_MS = 2_000;
 
-function computeStats(events, start, now) {
-  const durationMs = Math.max(0, now - start);
+// activeMs: session time without the time the app was closed (defaults to now - start).
+function computeStats(events, start, now, activeMs) {
+  const durationMs = Math.max(0, activeMs ?? now - start);
   const hours = Math.max(durationMs, 60_000) / 3_600_000; // at least 1 min, so the first numbers are not huge
   const perHour = (n) => n / hours;
 

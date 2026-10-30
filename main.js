@@ -28,9 +28,39 @@ function saveConfig() {
 }
 
 // ---------- session state ----------
-const appStart = Date.now();
-let sessionStart = appStart;
+// The session survives closing the app: it is saved to session.json and continued on the next start.
+// Time while the app was closed is not counted in the session duration.
+let sessionStart = Date.now();
+let closedMs = 0;
 let screenEvents = [];
+const sessionPath = () => path.join(app.getPath('userData'), 'session.json');
+
+function loadSession() {
+  try {
+    const s = JSON.parse(fs.readFileSync(sessionPath(), 'utf8'));
+    if (typeof s.start !== 'number' || !Array.isArray(s.screenEvents)) return;
+    sessionStart = s.start;
+    closedMs = (s.closedMs || 0) + Math.max(0, Date.now() - (s.lastSeen || Date.now()));
+    screenEvents = s.screenEvents.filter((e) => e && typeof e.time === 'number' && e.time >= sessionStart);
+  } catch { /* no saved session: start a new one */ }
+}
+
+function saveSession() {
+  const data = JSON.stringify({ version: 1, start: sessionStart, closedMs, lastSeen: Date.now(), screenEvents });
+  const file = sessionPath();
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file + '.tmp', data);
+    fs.renameSync(file + '.tmp', file);
+  } catch (err) { console.error('session save failed', err); }
+}
+
+function newSession() {
+  sessionStart = Date.now();
+  closedMs = 0;
+  screenEvents = [];
+  saveSession();
+}
 let tracker = new ScreenTracker();
 let files = { monthly: null, exported: null };
 const status = { screen: 'starting', error: '', lastFrameAt: 0, lastEventAt: 0, chatlogsDir: '' };
@@ -110,7 +140,7 @@ function startWatcher() {
   const dir = config.chatlogsDir || findChatlogsDir();
   status.chatlogsDir = dir || '';
   if (!dir) return;
-  watcher = new LogWatcher({ dir, tab: config.tab, since: appStart - 60_000 });
+  watcher = new LogWatcher({ dir, tab: config.tab, since: sessionStart - 60_000 });
   watcher.on('update', (s) => { files = s; pushSnapshot(); });
   watcher.on('error', (err) => console.error('[logs]', err.message));
   watcher.start();
@@ -122,7 +152,7 @@ function pushSnapshot() {
   const now = Date.now();
   screenEvents = screenEvents.filter((e) => e.time >= sessionStart);
   const events = mergeSources({ ...files, screen: screenEvents, start: sessionStart });
-  const snap = computeStats(events, sessionStart, now);
+  const snap = computeStats(events, sessionStart, now, Math.max(0, now - sessionStart - closedMs));
   const exact = exactUntil(files);
   snap.status = {
     screen: status.screen,
@@ -199,8 +229,7 @@ ipcMain.on('overlay:drag-end', () => {
 });
 ipcMain.on('overlay:action', (_e, name) => {
   if (name === 'reset') {
-    sessionStart = Date.now();
-    screenEvents = [];
+    newSession();
     pushSnapshot();
   } else if (name === 'calibrate') {
     openCalibration();
@@ -223,10 +252,12 @@ ipcMain.on('calib:cancel', () => { if (calib) calib.close(); });
 // ---------- app ----------
 app.whenReady().then(() => {
   loadConfig();
+  loadSession();
   createOverlay();
   startWatcher();
   startOcr();
   setInterval(pushSnapshot, 1000);
+  setInterval(() => saveSession(), 5000); // also keeps "last seen" fresh, so closed time is measured
   globalShortcut.register('Alt+Shift+S', () => {
     if (!overlay) return;
     if (overlay.isVisible()) overlay.hide(); else overlay.showInactive();
@@ -236,5 +267,5 @@ app.whenReady().then(() => {
 });
 
 app.on('second-instance', () => { if (overlay) overlay.showInactive(); });
-app.on('will-quit', () => { globalShortcut.unregisterAll(); stopOcr(); if (watcher) watcher.stop(); });
+app.on('will-quit', () => { saveSession(); globalShortcut.unregisterAll(); stopOcr(); if (watcher) watcher.stop(); });
 app.on('window-all-closed', () => app.quit());
