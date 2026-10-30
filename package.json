@@ -7,7 +7,8 @@
   "scripts": {
     "start": "electron .",
     "stats": "node src/cli.js",
-    "dist": "electron-builder --win"
+    "dist": "electron-builder --win",
+    "postdist": "node -e \"const v=require('./package.json').version; require('fs').copyFileSync('dist/RQ-Stats-'+v+'.exe', 'RQ Stats.exe')\""
   },
   "devDependencies": {
     "electron": "^45.2.0",
