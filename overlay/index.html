@@ -119,6 +119,11 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
 .e-kill, .e-level { color: var(--exp); } .e-item { color: var(--pick); } .e-gold { color: var(--gold); } .e-recv { color: var(--recv); } .e-heal { color: var(--heal); }
 .hint { padding: 10px 14px; font-size: 12.5px; color: var(--gold); border-bottom: 1px solid var(--line); line-height: 1.4; }
 .hint[hidden] { display: none; }
+.ic { width: 16px; height: 16px; object-fit: contain; vertical-align: -3px; margin-right: 5px; flex: none; }
+.lbl .ic, .strip span .ic { width: 14px; height: 14px; }
+.feed .ic { width: 14px; height: 14px; margin: 0 5px 0 0; }
+.nm .ic { width: 14px; height: 14px; }
+.st .k .ic { width: 13px; height: 13px; vertical-align: -2px; }
 .lang { padding: 0 0 2px; }
 .hint button { font: inherit; color: var(--on-accent); background: var(--accent); border: 0; border-radius: 5px; padding: 3px 10px; margin-top: 6px; cursor: pointer; }
 
@@ -157,22 +162,22 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
   </div>
 
   <div class="hud" id="hud">
-    <div class="tile t-dps" data-k="dps"><span class="lbl">DPS</span><span class="val" id="vDps">0</span>
+    <div class="tile t-dps" data-k="dps"><span class="lbl"><img class="ic" src="icons/sword.png" alt="">DPS</span><span class="val" id="vDps">0</span>
       <svg class="spark" viewBox="0 0 100 20" preserveAspectRatio="none"><path class="ar" id="spA"></path><path class="ln" id="spL"></path></svg></div>
-    <div class="tile t-gold" data-k="gold"><span class="lbl" data-i18n="gold"></span><span class="val" id="vGold">0</span><span class="sub"></span></div>
-    <div class="tile t-exp" data-k="exp"><span class="lbl" data-i18n="exp"></span><span class="val" id="vExp">0</span><span class="sub"></span></div>
+    <div class="tile t-gold" data-k="gold"><span class="lbl"><img class="ic" src="icons/gold.png" alt=""><span data-i18n="gold"></span></span><span class="val" id="vGold">0</span><span class="sub"></span></div>
+    <div class="tile t-exp" data-k="exp"><span class="lbl"><img class="ic" src="icons/exp.png" alt=""><span data-i18n="exp"></span></span><span class="val" id="vExp">0</span><span class="sub"></span></div>
   </div>
   <div class="strip" id="strip">
-    <div data-k="kills"><span data-i18n="kills"></span><b id="vKills">0</b></div>
-    <div data-k="items"><span data-i18n="items"></span><b id="vItems">0</b></div>
-    <div data-k="level"><span data-i18n="level"></span><b id="vLvl">—</b></div>
+    <div data-k="kills"><span><img class="ic" src="icons/kills.png" alt=""><span data-i18n="kills"></span></span><b id="vKills">0</b></div>
+    <div data-k="items"><span><img class="ic" src="icons/loot.png" alt=""><span data-i18n="items"></span></span><b id="vItems">0</b></div>
+    <div data-k="level"><span><img class="ic" src="icons/level.png" alt=""><span data-i18n="level"></span></span><b id="vLvl">—</b></div>
   </div>
 
   <div class="body" id="body">
     <nav class="tabs">
-      <button class="tab" data-tab="mobs"><span data-i18n="tabMobs"></span><span class="n" id="nMobs"></span></button>
-      <button class="tab" data-tab="loot"><span data-i18n="tabLoot"></span><span class="n" id="nLoot"></span></button>
-      <button class="tab" data-tab="combat"><span data-i18n="tabCombat"></span></button>
+      <button class="tab" data-tab="mobs"><img class="ic" src="icons/mobs.png" alt=""><span data-i18n="tabMobs"></span><span class="n" id="nMobs"></span></button>
+      <button class="tab" data-tab="loot"><img class="ic" src="icons/loot.png" alt=""><span data-i18n="tabLoot"></span><span class="n" id="nLoot"></span></button>
+      <button class="tab" data-tab="combat"><img class="ic" src="icons/sword.png" alt=""><span data-i18n="tabCombat"></span></button>
     </nav>
     <div class="pane" id="p-mobs">
       <div class="sum"><span><span data-i18n="totalKilled"></span> <b id="mTotal">0</b></span><span id="mKinds"></span></div>
@@ -186,9 +191,9 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
     </div>
     <div class="pane" id="p-combat" hidden>
       <div class="stats">
-        <div class="st"><div class="k" data-i18n="dealt"></div><div class="v c-dmg" id="cDealt">0</div></div>
-        <div class="st"><div class="k" data-i18n="recv"></div><div class="v c-recv" id="cRecv">0</div></div>
-        <div class="st"><div class="k" data-i18n="heal"></div><div class="v c-heal" id="cHeal">0</div></div>
+        <div class="st"><div class="k"><img class="ic" src="icons/sword.png" alt=""><span data-i18n="dealt"></span></div><div class="v c-dmg" id="cDealt">0</div></div>
+        <div class="st"><div class="k"><img class="ic" src="icons/shield.png" alt=""><span data-i18n="recv"></span></div><div class="v c-recv" id="cRecv">0</div></div>
+        <div class="st"><div class="k"><img class="ic" src="icons/heal.png" alt=""><span data-i18n="heal"></span></div><div class="v c-heal" id="cHeal">0</div></div>
         <div class="st"><div class="k" data-i18n="maxHit"></div><div class="v" id="cMax">0</div><div class="s" id="cMaxOn"></div></div>
         <div class="st"><div class="k" data-i18n="avgDps"></div><div class="v" id="cAvg">0</div><div class="s" data-i18n="perSession"></div></div>
         <div class="st"><div class="k" data-i18n="peakDps"></div><div class="v" id="cPeak">0</div><div class="s" id="cAcc"></div></div>
@@ -226,6 +231,10 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
     up: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"/></svg>',
     down: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>',
   };
+
+  const img = (n) => '<img class="ic" src="icons/' + n + '.png" alt="">';
+  const ICON_IMG = { card: img('card') };
+  const FEED_IMG = { kill: img('kills'), item: img('loot'), gold: img('gold'), level: img('level'), heal: img('heal'), recv: img('shield') };
 
   let S = null;
   let tab = store.get('tab', 'mobs');
@@ -395,11 +404,11 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
     }
     if (tab === 'loot') {
       const cards = s.items.filter((i) => i.card);
-      const chips = [['all', T.all, s.items.length], ['card', T.cards, cards.length], ['other', T.other, s.items.length - cards.length]];
-      $('chips').innerHTML = chips.map(([k, label, n]) => '<button class="chip" data-cat="' + k + '" aria-pressed="' + (cat === k) + '">' + esc(label) + '<span class="n">' + n + '</span></button>').join('');
+      const chips = [['all', T.all, s.items.length], ['card', ICON_IMG.card + T.cards, cards.length], ['other', T.other, s.items.length - cards.length]];
+      $('chips').innerHTML = chips.map(([k, label, n]) => '<button class="chip" data-cat="' + k + '" aria-pressed="' + (cat === k) + '">' + (label.startsWith('<img') ? label : esc(label)) + '<span class="n">' + n + '</span></button>').join('');
       const rows = s.items.filter((i) => cat === 'all' || (cat === 'card') === i.card);
       keepScroll($('lootList'), rows.length ? rows.map((i) =>
-        '<li class="row l-grid' + (s.now - i.last < 1500 ? ' flash' : '') + '"><span class="nm' + (i.card ? ' card' : '') + '"' + (i.rarity && !i.card ? ' style="color:' + i.rarity + '"' : '') + '>' + esc(i.name) + '</span>' +
+        '<li class="row l-grid' + (s.now - i.last < 1500 ? ' flash' : '') + '"><span class="nm' + (i.card ? ' card' : '') + '"' + (i.rarity && !i.card ? ' style="color:' + i.rarity + '"' : '') + '>' + (i.card ? ICON_IMG.card : '') + esc(i.name) + '</span>' +
         '<span class="ct">×' + fmt(i.qty) + '</span></li>').join('')
         : '<li class="empty">' + esc(T.noLoot) + '</li>');
     }
@@ -417,7 +426,7 @@ html, body { margin: 0; background: transparent; color: var(--fg); font-family: 
       $('chMax').textContent = fmt(mx);
       $('chart').innerHTML = s.chart.map((v, i) => { const bh = (v / mx) * 76; return '<rect x="' + (i * 5 + .7) + '" y="' + (80 - bh).toFixed(2) + '" width="3.6" height="' + bh.toFixed(2) + '"></rect>'; }).join('');
     }
-    $('feed').innerHTML = s.feed.map((f) => '<li class="e-' + f.type + '"><span class="t">' + hms(f.time) + '</span>' + esc(f.text) + '</li>').join('');
+    $('feed').innerHTML = s.feed.map((f) => '<li class="e-' + f.type + '"><span class="t">' + hms(f.time) + '</span>' + (FEED_IMG[f.type] || '') + esc(f.text) + '</li>').join('');
   }
 
   window.rq.onSnapshot((s) => { S = s; render(); });

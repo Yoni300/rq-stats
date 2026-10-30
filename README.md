@@ -74,3 +74,7 @@ npm run stats -- "D:\...\Royal Quest Online\client_2962300\chatlogs\Stats (2026.
 | `src/parser.js` | розбирає рядки чату (російський клієнт гри) |
 | `src/stats.js` | рахує статистику |
 | `overlay/` | інтерфейс оверлею і вікно вибору області чату |
+
+## Значки
+
+Значки в `overlay/icons/` взяті з [Royal Quest Wiki](https://royalquest.fandom.com/) і належать розробникам гри (Katauri Interactive / 1C). Вони використовуються лише для впізнаваності в цьому неофіційному фанатському інструменті.
