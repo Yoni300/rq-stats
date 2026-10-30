@@ -1,14 +1,50 @@
 {
   "name": "rq-stats",
   "version": "0.1.0",
-  "description": "Royal Quest stats overlay: DPS, gold and exp per hour, kills and loot",
+  "description": "Royal Quest stats overlay: DPS, gold, exp, kills and loot",
   "main": "main.js",
   "private": true,
   "scripts": {
     "start": "electron .",
-    "stats": "node src/cli.js"
+    "stats": "node src/cli.js",
+    "dist": "electron-builder --win"
   },
   "devDependencies": {
-    "electron": "^45.2.0"
+    "electron": "^45.2.0",
+    "electron-builder": "^26.18.0"
+  },
+  "productName": "RQ Stats",
+  "author": "Yoni300",
+  "build": {
+    "appId": "com.yoni300.rqstats",
+    "productName": "RQ Stats",
+    "files": [
+      "main.js",
+      "preload.js",
+      "overlay/**",
+      "ocr/**",
+      "src/**",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "ocr/**"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "portable": {
+      "artifactName": "RQ-Stats-${version}.exe"
+    }
   }
 }

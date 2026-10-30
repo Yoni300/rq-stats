@@ -8,6 +8,9 @@ const { LogWatcher, findChatlogsDir } = require('./src/log-watcher');
 const { mergeSources, exactUntil } = require('./src/merge');
 const { computeStats } = require('./src/stats');
 
+// Keep settings and the saved session in the same folder for the dev run and the .exe build.
+app.setPath('userData', path.join(app.getPath('appData'), 'rq-stats'));
+
 if (!app.requestSingleInstanceLock()) app.quit();
 
 const OVERLAY_W = 410;
@@ -101,7 +104,8 @@ function startOcr() {
   ocrStopping = false;
   status.screen = 'starting';
   status.error = '';
-  const script = path.join(__dirname, 'ocr', 'ocr-helper.ps1');
+  // Inside the .exe the script is unpacked next to app.asar, because PowerShell cannot read from the archive.
+  const script = path.join(__dirname, 'ocr', 'ocr-helper.ps1').replace('app.asar' + path.sep, 'app.asar.unpacked' + path.sep);
   const proc = spawn('powershell.exe', [
     '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script,
     '-X', String(r.x), '-Y', String(r.y), '-W', String(r.w), '-H', String(r.h),
